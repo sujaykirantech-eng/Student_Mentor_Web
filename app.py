@@ -506,6 +506,7 @@ SUBJECT_DIAGNOSTIC_DATA["10"] = {
 def subject_bridge(subject_name):
     cls = str(session.get("student_class", "12"))
     display_name = subject_name.replace("-", " ").title()
+    roll_no = str(session.get("roll", "101"))
     
     class_data = SUBJECT_DIAGNOSTIC_DATA.get(cls, SUBJECT_DIAGNOSTIC_DATA.get("12", {}))
     subj_data = class_data.get(display_name, class_data.get("Chemistry", {}))
@@ -529,7 +530,101 @@ def subject_bridge(subject_name):
         "3": "I cannot solve numericals or apply formulas independently.",
         "4": "I make careless calculation, sign, or syntax mistakes."
     })
+
+    current_chapter_name = chapters.get(selected_chapter, f"Chapter {selected_chapter}")
+    current_topic_name = topics.get(selected_topic, f"Topic {selected_topic}")
+
+    # Check for previous doubt in database
+    previous_doubt = None
+    if Database is not None and hasattr(Database, "check_previous_doubt"):
+        try:
+            prev_records = Database.check_previous_doubt(roll_no, display_name, current_topic_name)
+            if prev_records and len(prev_records) > 0:
+                previous_doubt = prev_records[0]
+        except Exception:
+            previous_doubt = None
+
+    # Handle Deep Diagnostic submission
+    if request.method == "POST" and request.form.get("run_deep_analysis"):
+        q1 = request.form.get("q1", "1")
+        q2 = request.form.get("q2", "1")
+        q4 = request.form.get("q4", "none")
+        q7 = request.form.get("q7", "1")
+        q17 = request.form.get("q17", "").strip()
+        q18 = request.form.get("q18", "").strip()
+        diff_choice = request.form.get("difficulty", "1")
+
+        # Run DoubtDiagnostic python engine
+        diagnostic_result = None
+        try:
+            from DoubtDiagnostic import DoubtDiagnostic
+            dd = DoubtDiagnostic(
+                subject=display_name,
+                chapter=current_chapter_name,
+                topic=current_topic_name,
+                previous_difficulty=previous_doubt[2] if previous_doubt else difficulties.get(diff_choice, "General difficulty")
+            )
+            dd.q1_main_reason = q1
+            dd.q2_when_stuck = q2
+            dd.q4_prerequisite = q4
+            dd.q7_independent_solving = q7
+            dd.q17_natural_experience = q17
+            dd.q18_support_preference = q18
+            dd.analyse()
+            diagnostic_result = dd.get_result()
+        except Exception as e:
+            diagnostic_result = {
+                "patterns": ["Root cause analysis completed through focused self-reflection."],
+                "strengths": ["Clear articulation of exact conceptual stuck point."],
+                "advice": [subj_data.get("advice", {}).get(diff_choice, ["Review core definitions and practice unassisted questions."])[0]],
+                "priority_actions": [f"Solve 3 practice questions on {current_topic_name} with error margin tracking."]
+            }
+
+        # Save to database
+        try:
+            if Database is not None and hasattr(Database, "save_response"):
+                Database.save_response(
+                    Roll_no=roll_no,
+                    Student_name=session.get("student_name", "Student"),
+                    student_class=cls,
+                    Student_Section=session.get("section", "A"),
+                    subject=display_name,
+                    chapter=current_chapter_name,
+                    topic=current_topic_name,
+                    difficulty=difficulties.get(diff_choice, diff_choice)
+                )
+        except Exception:
+            pass
+
+        advice_list = diagnostic_result.get("advice", []) if diagnostic_result else subj_data.get("advice", {}).get(diff_choice, [])
+        return render_template(
+            "subject_result.html",
+            profile=profile(),
+            subject=display_name,
+            chapter_name=current_chapter_name,
+            topic_name=current_topic_name,
+            difficulty_name=difficulties.get(diff_choice, "General Friction"),
+            advice_lines=advice_list,
+            previous_doubt=previous_doubt,
+            diagnostic_result=diagnostic_result
+        )
+
+    # If student requests deep diagnostic OR if previous doubt exists and they click submit
+    if request.method == "POST" and (request.form.get("request_deep_diagnostic") or (previous_doubt and request.form.get("submit_diagnostic"))):
+        selected_diff = request.form.get("difficulty", "1")
+        return render_template(
+            "subject_deep_diagnostic.html",
+            profile=profile(),
+            subject=display_name,
+            chapter_name=current_chapter_name,
+            topic_name=current_topic_name,
+            selected_chapter=selected_chapter,
+            selected_topic=selected_topic,
+            selected_difficulty=selected_diff,
+            previous_doubt=previous_doubt
+        )
     
+    # Standard submission
     if request.method == "POST" and request.form.get("submit_diagnostic"):
         selected_diff = request.form.get("difficulty", "1")
         advice_list = subj_data.get("advice", {}).get(selected_diff, [
@@ -542,14 +637,14 @@ def subject_bridge(subject_name):
         try:
             if Database is not None and hasattr(Database, "save_response"):
                 Database.save_response(
-                    Roll_no=session.get("roll", "101"),
+                    Roll_no=roll_no,
                     Student_name=session.get("student_name", "Student"),
                     student_class=cls,
                     Student_Section=session.get("section", "A"),
                     subject=display_name,
-                    chapter=chapters.get(selected_chapter, f"Chapter {selected_chapter}"),
-                    topic=topics.get(selected_topic, f"Topic {selected_topic}"),
-                    difficulty=selected_diff
+                    chapter=current_chapter_name,
+                    topic=current_topic_name,
+                    difficulty=difficulties.get(selected_diff, selected_diff)
                 )
         except Exception:
             pass
@@ -558,10 +653,12 @@ def subject_bridge(subject_name):
             "subject_result.html",
             profile=profile(),
             subject=display_name,
-            chapter_name=chapters.get(selected_chapter, f"Chapter {selected_chapter}"),
-            topic_name=topics.get(selected_topic, f"Topic {selected_topic}"),
+            chapter_name=current_chapter_name,
+            topic_name=current_topic_name,
             difficulty_name=difficulties.get(selected_diff, "General Friction"),
-            advice_lines=advice_list
+            advice_lines=advice_list,
+            previous_doubt=previous_doubt,
+            diagnostic_result=None
         )
 
     return render_template(
@@ -572,9 +669,10 @@ def subject_bridge(subject_name):
         selected_chapter=selected_chapter,
         topics=topics,
         selected_topic=selected_topic,
-        difficulties=difficulties
+        topic_name=current_topic_name,
+        difficulties=difficulties,
+        previous_doubt=previous_doubt
     )
-
 
 @app.route("/general", methods=["GET", "POST"])
 def general_problem():

@@ -7,15 +7,53 @@
   <p>Targeted roadmap for <strong>{{ chapter_name }}</strong>: <em>{{ topic_name }}</em></p>
 </div>
 
+{% if previous_doubt %}
+<div class="card" style="border-left: 4px solid #f2cc60; background: rgba(242, 204, 96, 0.08); margin-bottom: 2rem;">
+  <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+    <span style="font-size: 1.3rem;">🧠</span>
+    <strong style="color: #f2cc60; font-size: 1.05rem;">Previous Doubt Review</strong>
+  </div>
+  <p style="color: #e6edf3; margin-bottom: 0.25rem;">
+    Earlier recorded friction on this topic: <em>"{{ previous_doubt[2] }}"</em>
+  </p>
+  <span style="color: #8b949e; font-size: 0.85rem;">Saved on: {{ previous_doubt[3] }}</span>
+</div>
+{% endif %}
+
 <div class="card">
-  <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+  <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
     <span style="background: rgba(88, 166, 255, 0.15); color: #58a6ff; font-weight: 600; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem;">
       Identified Friction
     </span>
     <span style="font-weight: 600; color: #fff;">{{ difficulty_name }}</span>
+    <span style="background: rgba(56, 139, 253, 0.1); color: #79c0ff; border: 1px solid rgba(56, 139, 253, 0.4); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; margin-left: auto;">
+      MySQL Saved ✓
+    </span>
   </div>
 
-  <h3 style="color: #fff; margin-bottom: 1rem; font-size: 1.25rem;">Recommended Mentor Strategy:</h3>
+  {% if diagnostic_result and diagnostic_result.patterns %}
+  <div style="margin-bottom: 1.5rem;">
+    <h3 style="color: #58a6ff; font-size: 1.15rem; margin-bottom: 0.75rem;">🔍 Diagnosed Learning Patterns:</h3>
+    <div style="background: rgba(255,255,255,0.02); border: 1px solid #30363d; border-radius: 8px; padding: 1.25rem;">
+      {% for p in diagnostic_result.patterns %}
+        <p style="margin-bottom: 0.5rem; color: #e6edf3;">• {{ p }}</p>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if diagnostic_result and diagnostic_result.priority_actions %}
+  <div style="margin-bottom: 1.5rem;">
+    <h3 style="color: #3fb950; font-size: 1.15rem; margin-bottom: 0.75rem;">★ Immediate Action Plan:</h3>
+    <div style="background: rgba(63, 185, 80, 0.08); border-left: 4px solid #3fb950; border-radius: 8px; padding: 1.25rem;">
+      {% for pa in diagnostic_result.priority_actions %}
+        <p style="margin-bottom: 0.5rem; color: #e6edf3;">★ {{ pa }}</p>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <h3 style="color: #fff; margin-bottom: 1rem; font-size: 1.2rem;">Recommended Mentor Strategy:</h3>
   <div style="background: rgba(255,255,255,0.03); border-left: 4px solid #58a6ff; border-radius: 8px; padding: 1.5rem;">
     {% for line in advice_lines %}
       <p style="margin-bottom: 0.85rem; color: #e6edf3; display: flex; align-items: flex-start; gap: 8px;">
@@ -31,6 +69,9 @@
     </a>
     <a href="{{ url_for('subject') }}" class="btn secondary">
       Choose Another Subject
+    </a>
+    <a href="{{ url_for('history') }}" class="btn secondary">
+      View Student History
     </a>
     <a href="{{ url_for('academic') }}" class="btn primary">
       Return to Academic Hub

@@ -7,6 +7,24 @@
   <p>Select your chapter and topic to pinpoint specific difficulties and get your study strategy.</p>
 </div>
 
+{% if previous_doubt %}
+<div class="card" style="border-left: 4px solid #f2cc60; background: rgba(242, 204, 96, 0.08); margin-bottom: 2rem;">
+  <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+    <span style="font-size: 1.3rem;">🧠</span>
+    <strong style="color: #f2cc60; font-size: 1.05rem;">Previous Doubt Detected for this Topic!</strong>
+  </div>
+  <p style="color: #e6edf3; margin-bottom: 0.25rem;">
+    Earlier recorded friction on <strong>{{ topic_name }}</strong>: <em>"{{ previous_doubt[2] }}"</em>
+  </p>
+  <span style="color: #8b949e; font-size: 0.85rem;">Assessed on: {{ previous_doubt[3] }}</span>
+  <div style="margin-top: 1rem;">
+    <p style="color: #58a6ff; font-weight: 500;">
+      👉 Re-evaluating this topic will launch the <strong>DoubtDiagnostic</strong> psychological root-cause flow!
+    </p>
+  </div>
+</div>
+{% endif %}
+
 <div class="card">
   <form method="post" action="">
     <div class="form-group" style="margin-bottom: 1.5rem;">
@@ -39,9 +57,18 @@
       </div>
     </div>
 
-    <button class="btn primary" type="submit" name="submit_diagnostic" value="true" style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 600; margin-top: 1rem;">
-      Generate Study Strategy & Report →
-    </button>
+    <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+      <button class="btn primary" type="submit" name="submit_diagnostic" value="true" style="flex: 1; padding: 0.85rem; font-size: 1rem; font-weight: 600;">
+        {% if previous_doubt %}
+          Continue to DoubtDiagnostic Review →
+        {% else %}
+          Generate Study Strategy & Report →
+        {% endif %}
+      </button>
+      <button class="btn secondary" type="submit" name="request_deep_diagnostic" value="true" style="padding: 0.85rem 1.5rem; font-size: 0.95rem;">
+        🔬 Launch Deep 18-Point Diagnostic
+      </button>
+    </div>
   </form>
 </div>
 {% endblock %}

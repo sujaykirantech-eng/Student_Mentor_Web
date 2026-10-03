@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ subject }} Deep Diagnostic{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="eyebrow">EDUCATIONAL PSYCHOLOGY ENGINE • DOUBT DIAGNOSTIC v5.1</div>
+  <h1>{{ subject }} — Deep Diagnostic Analysis</h1>
+  <p>Chapter: <strong>{{ chapter_name }}</strong> • Topic: <strong>{{ topic_name }}</strong></p>
+</div>
+
+{% if previous_doubt %}
+<div class="card" style="border-left: 4px solid #f2cc60; background: rgba(242, 204, 96, 0.08); margin-bottom: 2rem;">
+  <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+    <span style="font-size: 1.3rem;">🧠</span>
+    <strong style="color: #f2cc60; font-size: 1.05rem;">Previous Difficulty Detected in Database</strong>
+  </div>
+  <p style="color: #e6edf3; margin-bottom: 0.25rem;">
+    Recorded friction: <em>"{{ previous_doubt[2] }}"</em>
+  </p>
+  <span style="color: #8b949e; font-size: 0.85rem;">Assessed on: {{ previous_doubt[3] }}</span>
+</div>
+{% endif %}
+
+<div class="card">
+  <form method="post" action="">
+    <input type="hidden" name="chapter" value="{{ selected_chapter }}">
+    <input type="hidden" name="topic" value="{{ selected_topic }}">
+    <input type="hidden" name="difficulty" value="{{ selected_difficulty }}">
+
+    <!-- Q1 -->
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Q1. What is the PRIMARY difficulty right now?</label>
+      <select name="q1" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 8px; background: #0d1117; color: #fff; border: 1px solid #30363d;" required>
+        <option value="1">1. I don't understand the fundamental concept.</option>
+        <option value="2">2. I understand it initially, but forget it later.</option>
+        <option value="3">3. I understand the concept, but cannot solve problems.</option>
+        <option value="4">4. I can solve basic questions, but difficult/mixed ones confuse me.</option>
+        <option value="5">5. I struggle to understand what the question is asking.</option>
+        <option value="6">6. A prerequisite/foundation concept is weak.</option>
+        <option value="7">7. The explanation or teaching method was unclear.</option>
+        <option value="8">8. I know the method but make mistakes while solving.</option>
+      </select>
+    </div>
+
+    <!-- Q2 -->
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Q2. At which stage do you most often get stuck?</label>
+      <select name="q2" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 8px; background: #0d1117; color: #fff; border: 1px solid #30363d;" required>
+        <option value="1">1. While learning the concept initially.</option>
+        <option value="2">2. When recalling without looking at notes.</option>
+        <option value="3">3. At the very beginning of a question (how to start).</option>
+        <option value="4">4. Halfway through the solution execution.</option>
+        <option value="5">5. Only on unfamiliar or complex questions.</option>
+        <option value="6">6. Under timed exam pressure.</option>
+        <option value="7">7. During arithmetic, algebra, or substitution steps.</option>
+      </select>
+    </div>
+
+    <!-- Q4 -->
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Q3 (Foundation). Is there an earlier concept or prerequisite blocking you?</label>
+      <input type="text" name="q4" class="form-control" placeholder="e.g., Oxidation states, Redox balancing, or 'none'" style="width: 100%; padding: 0.75rem; border-radius: 8px; background: #0d1117; color: #fff; border: 1px solid #30363d;" value="none" required>
+    </div>
+
+    <!-- Q7 -->
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Q4 (Independence). If given a fresh problem right now with NO notes, what happens?</label>
+      <select name="q7" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 8px; background: #0d1117; color: #fff; border: 1px solid #30363d;" required>
+        <option value="1">1. I can identify the principle and solve it end-to-end.</option>
+        <option value="2">2. I understand the topic, but do not know how to start the question.</option>
+        <option value="3">3. I start correctly, but hit a wall halfway through.</option>
+        <option value="4">4. I immediately look for the worked solution or guide.</option>
+        <option value="5">5. I cannot identify which concept or formula is relevant.</option>
+      </select>
+    </div>
+
+    <!-- Q17 -->
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Q5 (Specific Breakdown). In your own words, describe where you felt stuck:</label>
+      <textarea name="q17" rows="3" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 8px; background: #0d1117; color: #fff; border: 1px solid #30363d;" placeholder="e.g., I get confused in acidic vs basic medium reactions or balancing oxidation numbers..." required></textarea>
+    </div>
+
+    <!-- Q18 -->
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Q6 (Support Goal). What support would help you most right now?</label>
+      <input type="text" name="q18" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 8px; background: #0d1117; color: #fff; border: 1px solid #30363d;" placeholder="e.g., step-by-step reaction drill, mistake register, formula memory sheet" required>
+    </div>
+
+    <button class="btn primary" type="submit" name="run_deep_analysis" value="true" style="width: 100%; padding: 0.9rem; font-size: 1.05rem; font-weight: 600; margin-top: 1rem;">
+      Execute DoubtDiagnostic & Synthesize Report 🚀
+    </button>
+  </form>
+</div>
+{% endblock %}
