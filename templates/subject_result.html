@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ subject }} Diagnostic Report{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="eyebrow">DIAGNOSTIC REPORT • {{ subject | upper }}</div>
+  <h1>Personalized Action Strategy</h1>
+  <p>Targeted roadmap for <strong>{{ chapter_name }}</strong>: <em>{{ topic_name }}</em></p>
+</div>
+
+<div class="card">
+  <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+    <span style="background: rgba(88, 166, 255, 0.15); color: #58a6ff; font-weight: 600; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem;">
+      Identified Friction
+    </span>
+    <span style="font-weight: 600; color: #fff;">{{ difficulty_name }}</span>
+  </div>
+
+  <h3 style="color: #fff; margin-bottom: 1rem; font-size: 1.25rem;">Recommended Mentor Strategy:</h3>
+  <div style="background: rgba(255,255,255,0.03); border-left: 4px solid #58a6ff; border-radius: 8px; padding: 1.5rem;">
+    {% for line in advice_lines %}
+      <p style="margin-bottom: 0.85rem; color: #e6edf3; display: flex; align-items: flex-start; gap: 8px;">
+        <span style="color: #58a6ff;">✓</span>
+        <span>{{ line }}</span>
+      </p>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+    <a href="{{ url_for('subject_bridge', subject_name=subject|lower|replace(' ','-')) }}" class="btn secondary">
+      ← Assess Another Topic
+    </a>
+    <a href="{{ url_for('subject') }}" class="btn secondary">
+      Choose Another Subject
+    </a>
+    <a href="{{ url_for('academic') }}" class="btn primary">
+      Return to Academic Hub
+    </a>
+  </div>
+</div>
+{% endblock %}

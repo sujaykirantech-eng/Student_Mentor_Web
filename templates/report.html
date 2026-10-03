@@ -1,13 +1,15 @@
 {% extends "base.html" %}{% block title %}Mentor Report{% endblock %}
 {% block content %}
-<div class="report-head"><div><div class="eyebrow">10 • PERSONALIZED REPORT</div><h1>Your Study Mentor Report</h1><p>{{ result.topic }} · {{ result.subtopic }}</p></div><div class="save-pill">{{ "Saved to MySQL ✓" if saved else "Session report" }}</div></div>
+{% set r = result|default({}, true) %}
+<div class="report-head"><div><div class="eyebrow">10 • PERSONALIZED REPORT</div><h1>{{ r.topic|default('General Study Difficulty', true) }}</h1><p>{{ r.subtopic|default('Personalized study friction', true) }}</p></div><div class="save-pill">{{ "Saved to MySQL ✓" if saved|default(false) else "Session report" }}</div></div>
 <div class="report-grid">
-<div class="report-card blue"><span>WHAT I UNDERSTOOD</span><p>{{ result.summary_text }}</p></div>
-<div class="report-card purple"><span>MINDSET REFRAME</span><p>{{ result.mindset_shift }}</p></div>
-<div class="report-card green"><span>YOUR STRENGTHS</span><ul>{% for x in result.strengths.split(' | ') %}<li>{{ x }}</li>{% endfor %}</ul></div>
-<div class="report-card orange"><span>GROWTH AREAS</span><ul>{% for x in result.growth_areas.split(' | ') %}<li>{{ x }}</li>{% endfor %}</ul></div>
+<div class="report-card blue"><span>WHAT I UNDERSTOOD</span><p>{{ r.summary_text|default('Your responses indicate a study difficulty that can be approached step by step.', true) }}</p></div>
+<div class="report-card purple"><span>MINDSET REFRAME</span><p>{{ r.mindset_shift|default('Focus on manageable improvements and consistent practice rather than trying to fix everything at once.', true) }}</p></div>
+<div class="report-card green"><span>YOUR STRENGTHS</span><ul>{% for x in (r.strengths|default('Honest reflection', true)).split(' | ') %}<li>{{ x }}</li>{% endfor %}</ul></div>
+<div class="report-card orange"><span>GROWTH AREAS</span><ul>{% for x in (r.growth_areas|default('Follow-through and consistency', true)).split(' | ') %}<li>{{ x }}</li>{% endfor %}</ul></div>
 </div>
-<div class="card strategy"><div class="eyebrow">COMPREHENSIVE STRATEGY • {{ result.named_protocol }}</div><h2>Your practical blueprint</h2><ul>{% for x in result.comprehensive_advice %}<li>{{ x }}</li>{% endfor %}</ul><div class="next-action"><strong>Next small action</strong><p>{{ result.action_step }}</p></div></div>
-<div class="card reflection"><div class="eyebrow">YOUR OWN IDEA</div><h2>“{{ result.student_solution }}”</h2><p>{{ result.student_solution }}</p></div>
+<div class="card strategy"><div class="eyebrow">COMPREHENSIVE STRATEGY • {{ r.named_protocol|default('Action Plan', true) }}</div><h2>Your practical blueprint</h2><ul>{% for x in r.comprehensive_advice|default([], true) %}<li>{{ x }}</li>{% endfor %}</ul><div class="next-action"><strong>Next small action</strong><p>{{ r.action_step|default('Complete one focused study task today and review what helped.', true) }}</p></div></div>
+<div class="card reflection"><div class="eyebrow">YOUR OWN IDEA</div><h2>“{{ r.student_solution|default('No solution was recorded.', true) }}”</h2><p>{{ r.student_solution|default('No solution was recorded.', true) }}</p></div>
+<div class="card"><div class="eyebrow">DIAGNOSTIC SNAPSHOT</div><h2>{{ severity_score|default(0) }}% friction score</h2><p>This is a simple web-flow indicator derived from the selected diagnostic response levels; it is not a clinical assessment.</p></div>
 <div class="choice-row"><a class="btn secondary" href="{{ url_for('history') }}">View progress</a><a class="btn primary" href="{{ url_for('home') }}">Finish session</a></div>
 {% endblock %}

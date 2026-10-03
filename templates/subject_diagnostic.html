@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ subject }} Diagnostic{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="eyebrow">SUBJECT DIAGNOSTIC • CLASS {{ profile.student_class }}</div>
+  <h1>{{ subject }}</h1>
+  <p>Select your chapter and topic to pinpoint specific difficulties and get your study strategy.</p>
+</div>
+
+<div class="card">
+  <form method="post" action="">
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">1. Select Chapter</label>
+      <select name="chapter" id="chapter-select" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 8px; background: #0d1117; color: #fff; border: 1px solid #30363d;" onchange="this.form.submit()">
+        {% for ch_num, ch_title in chapters.items() %}
+          <option value="{{ ch_num }}" {% if selected_chapter == ch_num %}selected{% endif %}>Chapter {{ ch_num }}: {{ ch_title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">2. Select Specific Topic</label>
+      <select name="topic" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 8px; background: #0d1117; color: #fff; border: 1px solid #30363d;" onchange="this.form.submit()">
+        {% for top_num, top_title in topics.items() %}
+          <option value="{{ top_num }}" {% if selected_topic == top_num %}selected{% endif %}>{{ top_num }}. {{ top_title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">3. What is the core friction or difficulty you are facing?</label>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+        {% for diff_num, diff_text in difficulties.items() %}
+          <label style="display: flex; align-items: flex-start; gap: 0.75rem; background: rgba(255,255,255,0.02); border: 1px solid #30363d; padding: 1rem; border-radius: 8px; cursor: pointer;">
+            <input type="radio" name="difficulty" value="{{ diff_num }}" {% if loop.first %}checked{% endif %} style="margin-top: 0.25rem;">
+            <span style="color: #e6edf3; font-size: 0.95rem; line-height: 1.5;">{{ diff_text }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <button class="btn primary" type="submit" name="submit_diagnostic" value="true" style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 600; margin-top: 1rem;">
+      Generate Study Strategy & Report →
+    </button>
+  </form>
+</div>
+{% endblock %}
