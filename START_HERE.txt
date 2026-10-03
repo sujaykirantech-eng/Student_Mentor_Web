@@ -1,0 +1,9 @@
+STUDENT MENTOR PROJECT
+
+1. Extract this ZIP into a new folder.
+2. Open the extracted folder in VS Code.
+3. Run: py -m pip install -r requirements.txt
+4. Run: py app.py
+5. Open: http://127.0.0.1:5000
+
+Branding: the navbar uses static/images/student-mentor-project-logo.png at a normal 40px size. If you previously ran an older copy, use this extracted folder and press Ctrl+F5 in the browser.

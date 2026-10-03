@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}My Progress{% endblock %}
+{% block content %}
+<div class="page-head"><div class="eyebrow">PROGRESS MEMORY</div><h1>Your previous records</h1><p>These are read through the existing Database.py layer when MySQL is available.</p></div>
+{% if general %}<div class="card"><div class="eyebrow">LATEST GENERAL DIAGNOSTIC</div><h2>{{ general.get('topic','') }}</h2><p>{{ general.get('subtopic','') }}</p><p class="muted">{{ general.get('created_at','') }}</p></div>{% endif %}
+{% if rows %}<div class="history-list">{% for row in rows %}<div class="history-row"><strong>{{ row[0] }}</strong><span>{{ row[1] }}</span><span>{{ row[2] }}</span><span>{{ row[3] }}</span><small>{{ row[4] }}</small></div>{% endfor %}</div>{% else %}<div class="empty card"><div>📊</div><h2>No previous subject records found.</h2><p>Complete a diagnostic and make sure MySQL is running to build your progress history.</p></div>{% endif %}
+{% endblock %}

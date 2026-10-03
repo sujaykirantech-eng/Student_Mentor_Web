@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block title %}Start • Student Mentor{% endblock %}
+{% block content %}
+<div class="page-head"><div class="eyebrow">01 • STUDENT PROFILE</div><h1>Let's get to know you.</h1><p>These details personalize your mentoring session.</p></div>
+<form method="post" class="card form-card">
+  <div class="form-grid">
+    <label>Student name<input name="name" value="{{ values.get('name','') }}" placeholder="Your name" required></label>
+    <label>Roll number<input name="roll" value="{{ values.get('roll','') }}" placeholder="Roll number" required></label>
+    <label>Section<input name="section" value="{{ values.get('section','') }}" placeholder="e.g. C" required></label>
+    <label>Class<select name="student_class" required><option value="">Select</option><option value="10">10th</option><option value="11">11th</option><option value="12">12th</option></select></label>
+  </div>
+  <button class="btn primary" type="submit">Continue →</button>
+</form>
+{% endblock %}

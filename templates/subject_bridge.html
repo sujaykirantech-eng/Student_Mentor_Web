@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}{{ subject }}{% endblock %}
+{% block content %}
+<div class="card bridge-card"><div class="icon">📚</div><div><div class="eyebrow">SUBJECT ENGINE</div><h1>{{ subject }}</h1><p>The original project contains a large, subject-specific diagnostic engine for this subject in <code>legacy/Class10.py</code>, <code>legacy/Class11.py</code> or <code>legacy/Class12.py</code>.</p><p>This web build deliberately does not replace that logic with a fake generic questionnaire. The module is preserved intact so its chapter → topic → difficulty logic can be migrated screen-by-screen without losing your existing work.</p><a class="btn primary" href="{{ url_for('academic') }}">Back to academic diagnosis</a></div></div>
+{% endblock %}

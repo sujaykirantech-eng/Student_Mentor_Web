@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} • Student Mentor{% endblock %}
+{% block content %}
+<section class="page-head info-head">
+  <div class="eyebrow">{{ eyebrow }}</div>
+  <h1>{{ heading }}</h1>
+  <p>{{ text }}</p>
+</section>
+<section class="info-grid">
+  {% for icon, name, description in cards %}
+  <article class="info-card">
+    <div class="info-icon">{{ icon }}</div>
+    <div><h3>{{ name }}</h3><p>{{ description }}</p></div>
+  </article>
+  {% endfor %}
+</section>
+<div class="info-actions">
+  <a class="btn primary" href="{{ url_for('start') }}">Start Student Mentor →</a>
+  <a class="btn secondary" href="{{ url_for('home') }}">Back to Home</a>
+</div>
+{% endblock %}

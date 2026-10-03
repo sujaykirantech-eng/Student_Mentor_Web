@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block title %}Subject Support{% endblock %}
+{% block content %}
+<div class="page-head"><div class="eyebrow">05 • SUBJECT-SPECIFIC SUPPORT</div><h1>Choose your subject.</h1><p>Your original Class-specific diagnostic modules are preserved in the project. Pick a subject to enter its web bridge.</p></div>
+<div class="subject-grid">{% for s in subjects %}<a class="subject-card" href="{{ url_for('subject_bridge', subject_name=s|lower|replace(' ','-')) }}"><span>{{ loop.index|string }}</span><h3>{{ s }}</h3><p>Open diagnostic path →</p></a>{% endfor %}</div>
+{% endblock %}

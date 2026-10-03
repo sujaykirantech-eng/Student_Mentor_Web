@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block title %}{{ topic.title }}{% endblock %}
+{% block content %}
+<div class="page-head"><div class="eyebrow">08 • SUBTOPIC</div><h1>{{ topic.title }}</h1><p>Which scenario is closest to what you experience most often?</p></div>
+<form method="post" class="topic-grid">{% for key,data in topic.subtopics.items() %}<button class="topic-card" name="subtopic_key" value="{{ key }}"><strong>{{ data.name }}</strong><small>Select →</small></button>{% endfor %}</form>
+{% endblock %}

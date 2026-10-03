@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Check-in{% endblock %}
+{% block content %}
+<div class="page-head"><div class="eyebrow">02 • CHECK-IN</div><h1>How are you feeling right now?</h1><p>There is no “correct” answer. Choose what feels closest.</p></div>
+<form method="post" class="choice-grid">
+{% for value,label,emoji,cls in [('happy','Good / positive','😊','green'),('fine','Okay / neutral','🙂','blue'),('anxious','Anxious','😟','purple'),('stressed','Stressed','😣','orange'),('angry','Frustrated / angry','😤','red'),('sad','Low / sad','😔','indigo')] %}
+<button class="choice {{ cls }}" name="mood" value="{{ value }}"><span>{{ emoji }}</span><strong>{{ label }}</strong></button>
+{% endfor %}
+</form>
+{% endblock %}

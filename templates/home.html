@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% block title %}Student Mentor • Home{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <div class="eyebrow">INTELLIGENT STUDENT GUIDANCE</div>
+    <h1>Understand your difficulty.<br><span>Build your next step.</span></h1>
+    <p>A student-facing web version of the Student Mentor system — academic diagnosis, reflection, practical strategies and progress history in one dark, focused workspace.</p>
+    <div class="hero-actions"><a class="btn primary" href="{{ url_for('start') }}">Start Mentoring <span>→</span></a><a class="btn ghost" href="{{ url_for('info_page', page='study') }}">Explore the Study Flow</a></div>
+    <div class="hero-stats"><span><b>26+</b> study domains</span><span><b>3</b> class pathways</span><span><b>1</b> connected mentor flow</span></div>
+  </div>
+  <div class="hero-card">
+    <div class="mini-top">TODAY'S MENTORING PATH</div>
+    <div class="path-item"><b>01</b><span>Student profile</span><em>START</em></div>
+    <div class="path-item"><b>02</b><span>Mood & wellness</span><em>CHECK</em></div>
+    <div class="path-item"><b>03</b><span>Academic diagnosis</span><em>EXPLORE</em></div>
+    <div class="path-item"><b>04</b><span>Personal action plan</span><em>ACT</em></div>
+    <div class="status-line"><i></i> Diagnostic engine ready</div>
+  </div>
+</section>
+<section class="feature-grid">
+  <div class="feature"><div class="icon">🧠</div><h3>Smart diagnosis</h3><p>Uses the existing general-study NLP-style classifier to identify the most relevant study area from the student's own words.</p></div>
+  <div class="feature"><div class="icon">🎯</div><h3>Practical guidance</h3><p>Moves from topic → subtopic → diagnostic questions → reflection → strengths → growth areas → next action.</p></div>
+  <div class="feature"><div class="icon">📊</div><h3>Progress memory</h3><p>Connects with the project's existing MySQL database layer for previous academic records.</p></div>
+</section>
+<section class="section-strip">
+  <div><span class="eyebrow">BUILT AROUND THE STUDENT</span><h2>Not just answers. A pathway.</h2></div>
+  <a class="btn secondary" href="{{ url_for('info_page', page='scenarios') }}">View Scenarios →</a>
+</section>
+{% endblock %}

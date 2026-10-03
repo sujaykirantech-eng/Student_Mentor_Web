@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: student-mentor-project
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: STUDENT_MENTOR_DOMAIN
+        value: studentmentorproject.example
+      - key: STUDENT_MENTOR_SECRET
+        generateValue: true

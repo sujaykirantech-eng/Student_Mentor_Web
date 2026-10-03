@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block title %}Study Areas{% endblock %}
+{% block content %}
+<div class="page-head"><div class="eyebrow">07 • TOPIC SELECTION</div><h1>Choose the closest study area.</h1><p>The NLP-style classifier could not confidently choose one topic automatically, so you can select the closest match.</p></div>
+<form method="post" class="topic-grid">{% for key,title in topics %}<button class="topic-card" name="topic_key" value="{{ key }}"><span class="topic-no">{{ "%02d"|format(loop.index) }}</span><strong>{{ title }}</strong><small>Explore →</small></button>{% endfor %}</form>
+{% endblock %}

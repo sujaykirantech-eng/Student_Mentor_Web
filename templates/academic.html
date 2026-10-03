@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}Academic Check{% endblock %}
+{% block content %}
+<div class="page-head"><div class="eyebrow">04 • ACADEMIC DIAGNOSIS</div><h1>Let's look at your study workflow.</h1><p>Answer honestly. The goal is to find the right path, not to judge you.</p></div>
+<form method="post" class="card">
+  <h2>Are you facing difficulties in your studies?</h2>
+  <div class="radio-grid"><label><input type="radio" name="q1" value="yes" required> Yes — I need help</label><label><input type="radio" name="q1" value="no"> No — I'm clear right now</label></div>
+  <h2 class="mt">Are the difficulties in a specific subject?</h2>
+  <div class="radio-grid"><label><input type="radio" name="q2" value="yes"> Yes — a particular subject</label><label><input type="radio" name="q2" value="no"> No — a general study difficulty</label></div>
+  <button class="btn primary" type="submit">Continue diagnosis →</button>
+</form>
+{% endblock %}

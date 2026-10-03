@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Great{% endblock %}
+{% block content %}
+<div class="success-card"><div class="success-icon">✨</div><div><div class="eyebrow">ACADEMIC STATUS</div><h1>That's great, {{ profile.name }}!</h1><p>Consistency and a steady routine are powerful. You can return whenever a chapter, study habit or exam challenge becomes difficult.</p><a class="btn primary" href="{{ url_for('home') }}">Back home</a></div></div>
+{% endblock %}

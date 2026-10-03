@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}Diagnostic Questions{% endblock %}
+{% block content %}
+<div class="page-head"><div class="eyebrow">09 • DIAGNOSTIC QUESTIONS</div><h1>Let's understand the pattern.</h1><p>These questions come from the existing general-study diagnostic matrix.</p></div>
+<form method="post">
+{% for q,opts in questions %}
+<div class="card question-card"><div class="q-number">Q{{ loop.index }}</div><h2>{{ q }}</h2><div class="option-list">{% for k,v in opts.items() %}<label><input type="radio" name="q{{ loop.index0 }}" value="{{ k }}" required><span>{{ v }}</span></label>{% endfor %}</div></div>
+{% endfor %}
+<div class="card"><h2>Your perspective matters.</h2><label>Why do you think this keeps happening?<textarea name="why" rows="4" required></textarea></label><label class="mt">If you could test ONE realistic adjustment tomorrow, what would you try?<textarea name="solution" rows="4" required></textarea></label></div>
+<button class="btn primary">Generate my mentor report →</button>
+</form>
+{% endblock %}

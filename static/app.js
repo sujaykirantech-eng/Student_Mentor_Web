@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll("form").forEach(f=>f.addEventListener("submit",()=>{const b=f.querySelector("button[type=submit],button.btn.primary");if(b){b.dataset.old=b.textContent;b.textContent="Processing…";b.style.opacity=".75"}}))});

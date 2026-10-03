@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block title %}Mentor Report{% endblock %}
+{% block content %}
+<div class="report-head"><div><div class="eyebrow">10 • PERSONALIZED REPORT</div><h1>Your Study Mentor Report</h1><p>{{ result.topic }} · {{ result.subtopic }}</p></div><div class="save-pill">{{ "Saved to MySQL ✓" if saved else "Session report" }}</div></div>
+<div class="report-grid">
+<div class="report-card blue"><span>WHAT I UNDERSTOOD</span><p>{{ result.summary_text }}</p></div>
+<div class="report-card purple"><span>MINDSET REFRAME</span><p>{{ result.mindset_shift }}</p></div>
+<div class="report-card green"><span>YOUR STRENGTHS</span><ul>{% for x in result.strengths.split(' | ') %}<li>{{ x }}</li>{% endfor %}</ul></div>
+<div class="report-card orange"><span>GROWTH AREAS</span><ul>{% for x in result.growth_areas.split(' | ') %}<li>{{ x }}</li>{% endfor %}</ul></div>
+</div>
+<div class="card strategy"><div class="eyebrow">COMPREHENSIVE STRATEGY • {{ result.named_protocol }}</div><h2>Your practical blueprint</h2><ul>{% for x in result.comprehensive_advice %}<li>{{ x }}</li>{% endfor %}</ul><div class="next-action"><strong>Next small action</strong><p>{{ result.action_step }}</p></div></div>
+<div class="card reflection"><div class="eyebrow">YOUR OWN IDEA</div><h2>“{{ result.student_solution }}”</h2><p>{{ result.student_solution }}</p></div>
+<div class="choice-row"><a class="btn secondary" href="{{ url_for('history') }}">View progress</a><a class="btn primary" href="{{ url_for('home') }}">Finish session</a></div>
+{% endblock %}
