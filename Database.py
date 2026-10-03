@@ -1,16 +1,96 @@
+import os
+import json
+import sqlite3
+from datetime import datetime
+
 try:
     import mysql.connector
     from mysql.connector import Error
 except ImportError:
     mysql = None
     Error = Exception
-import json
-import os
+
+SQLITE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "student_mentor.db")
+
+def is_mysql_available():
+    """Checks if a reachable MySQL server is configured."""
+    if mysql is None:
+        return False
+    # If on cloud (Render) without external host explicitly set, skip MySQL connect delay
+    host = os.getenv("STUDENT_MENTOR_DB_HOST", "")
+    if not host or host == "localhost":
+        if os.getenv("RENDER"):
+            return False
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv("STUDENT_MENTOR_DB_HOST", "localhost"),
+            port=int(os.getenv("STUDENT_MENTOR_DB_PORT", "3306")),
+            user=os.getenv("STUDENT_MENTOR_DB_USER", "root"),
+            password=os.getenv("STUDENT_MENTOR_DB_PASSWORD", ""),
+            connection_timeout=2
+        )
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+def get_sqlite_conn():
+    conn = sqlite3.connect(SQLITE_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def ensure_sqlite_tables():
+    conn = get_sqlite_conn()
+    c = conn.cursor()
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS study_responses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        Roll_no TEXT NOT NULL,
+        Student_name TEXT,
+        student_class TEXT,
+        Student_Section TEXT,
+        subject TEXT,
+        chapter TEXT,
+        topic TEXT,
+        difficulty TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS general_study_diagnostics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        roll_no TEXT NOT NULL,
+        student_name TEXT,
+        student_class TEXT,
+        section TEXT,
+        topic_key TEXT,
+        topic TEXT,
+        subtopic_key TEXT,
+        subtopic TEXT,
+        problem TEXT,
+        answers TEXT,
+        followup_notes TEXT,
+        student_solution TEXT,
+        solution_strengths TEXT,
+        solution_blind_spots TEXT,
+        identified_strengths TEXT,
+        identified_growth_areas TEXT,
+        comprehensive_advice TEXT,
+        named_protocol TEXT,
+        mindset_shift TEXT,
+        action_step TEXT,
+        nlp_detected_topic TEXT,
+        nlp_confidence REAL,
+        nlp_matched_keywords TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+    conn.commit()
+    conn.close()
 
 def get_connection():
-    """Helper to connect to the MySQL database."""
     if mysql is None:
-        raise RuntimeError("mysql-connector-python is not installed. Please run: pip install mysql-connector-python")
+        raise RuntimeError("mysql-connector-python not available")
     return mysql.connector.connect(
         host=os.getenv("STUDENT_MENTOR_DB_HOST", "localhost"),
         port=int(os.getenv("STUDENT_MENTOR_DB_PORT", "3306")),
@@ -20,8 +100,8 @@ def get_connection():
     )
 
 def ensure_database():
-    """Ensure the student_mentor database exists before executing queries."""
-    if mysql is None:
+    if not is_mysql_available():
+        ensure_sqlite_tables()
         return
     try:
         init_conn = mysql.connector.connect(
@@ -31,315 +111,252 @@ def ensure_database():
             password=os.getenv("STUDENT_MENTOR_DB_PASSWORD", "")
         )
         cursor = init_conn.cursor()
-        cursor.execute("CREATE DATABASE IF NOT EXISTS student_mentor;")
-        init_conn.commit()
+        db_name = os.getenv("STUDENT_MENTOR_DB_NAME", "student_mentor")
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{db_name}`;")
         cursor.close()
         init_conn.close()
     except Exception:
-        pass
+        ensure_sqlite_tables()
 
 def save_response(Roll_no, Student_name, student_class, Student_Section, subject, chapter, topic, difficulty):
     ensure_database()
-    db = cursor = None
-    try:
-        db = get_connection()
-        cursor = db.cursor()
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS study_responses (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            Roll_no VARCHAR(50) NOT NULL,
-            Student_name VARCHAR(150),
-            student_class VARCHAR(30),
-            Student_Section VARCHAR(30),
-            subject VARCHAR(100),
-            chapter VARCHAR(100),
-            topic TEXT,
-            difficulty TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_resp_roll (Roll_no),
-            INDEX idx_resp_subject (subject)
-        );
-        """)
-
-        query = """
-        INSERT INTO study_responses
-        (Roll_no, Student_name, student_class, Student_Section, subject, chapter, topic, difficulty)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """
-        values = (
-            Roll_no,
-            Student_name,
-            student_class,
-            Student_Section,
-            subject,
-            chapter,
-            topic,
-            difficulty
-        )
-        cursor.execute(query, values)
-        db.commit()
-        print("\nResponse saved successfully to MySQL! ✅")
-        return True
-    except Error as e:
-        print(f"\n[MySQL Error while saving response]: {e}")
-        return False
-    finally:
-        if cursor:
-            cursor.close()
-        if db and db.is_connected():
-            db.close()
-
-def check_previous_doubt(Roll_no, subject, topic):
-    ensure_database()
-    db = cursor = None
-    try:
-        db = get_connection()
-        cursor = db.cursor()
-        query = """
-        SELECT chapter, topic, difficulty, created_at
-        FROM study_responses
-        WHERE Roll_no = %s
-        AND subject = %s
-        AND topic = %s
-        ORDER BY created_at DESC
-        """
-        cursor.execute(query, (Roll_no, subject, topic))
-        results = cursor.fetchall()
-        return results
-    except Error as e:
-        print(f"\n[MySQL Error while checking previous doubt]: {e}")
-        return []
-    finally:
-        if cursor:
-            cursor.close()
-        if db and db.is_connected():
-            db.close()
-
-def check_student_history(Roll_no):
-    ensure_database()
-    db = cursor = None
-    try:
-        db = get_connection()
-        cursor = db.cursor()
-        query = """
-        SELECT subject, chapter, topic, difficulty, created_at
-        FROM study_responses
-        WHERE Roll_no = %s
-        ORDER BY created_at DESC
-        """
-        cursor.execute(query, (Roll_no,))
-        results = cursor.fetchall()
-        return results
-    except Error as e:
-        return []
-    finally:
-        if cursor:
-            cursor.close()
-        if db and db.is_connected():
-            db.close()
-
-def get_last_general_diagnostic(roll_no):
-    """Retrieves the student's previous general study diagnostic from MySQL."""
-    ensure_database()
-    db = cursor = None
-    try:
-        db = get_connection()
-        cursor = db.cursor(dictionary=True)
-        query = """
-        SELECT topic, subtopic, action_step, created_at, student_solution
-        FROM general_study_diagnostics
-        WHERE roll_no = %s
-        ORDER BY id DESC
-        LIMIT 1;
-        """
-        cursor.execute(query, (str(roll_no).strip(),))
-        row = cursor.fetchone()
-        return row
-    except Error:
-        return None
-    finally:
-        if cursor:
-            cursor.close()
-        if db and db.is_connected():
-            db.close()
-
-def save_general_diagnostic(data: dict):
-    """Saves a general study diagnostic report into a separate MySQL table."""
-    ensure_database()
-    db = cursor = None
-    try:
-        db = get_connection()
-        cursor = db.cursor()
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS general_study_diagnostics (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            roll_no VARCHAR(50) NOT NULL,
-            student_name VARCHAR(150),
-            student_class VARCHAR(30),
-            student_section VARCHAR(30),
-            topic VARCHAR(100) NOT NULL,
-            subtopic VARCHAR(200) NOT NULL,
-            raw_input TEXT,
-            followup_notes TEXT,
-            followup_trajectory VARCHAR(100),
-            nlp_category VARCHAR(100),
-            nlp_confidence FLOAT,
-            nlp_keywords TEXT,
-            diagnostic_answers JSON,
-            student_solution TEXT,
-            strengths TEXT,
-            growth_areas TEXT,
-            recommended_strategy TEXT,
-            action_step TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_gen_roll (roll_no),
-            INDEX idx_gen_topic (topic)
-        );
-        """)
-
-        insert_query = """
-        INSERT INTO general_study_diagnostics (
-            roll_no, student_name, student_class, student_section,
-            topic, subtopic, raw_input, followup_notes, followup_trajectory,
-            nlp_category, nlp_confidence, nlp_keywords, diagnostic_answers,
-            student_solution, strengths, growth_areas, recommended_strategy, action_step
-        ) VALUES (
-            %s, %s, %s, %s,
-            %s, %s, %s, %s, %s,
-            %s, %s, %s, %s,
-            %s, %s, %s, %s, %s
-        );
-        """
-        values = (
-            data.get("roll_no"),
-            data.get("student_name"),
-            data.get("student_class"),
-            data.get("student_section"),
-            data.get("topic"),
-            data.get("subtopic"),
-            data.get("raw_input"),
-            data.get("followup_notes"),
-            data.get("followup_trajectory"),
-            data.get("nlp_category"),
-            data.get("nlp_confidence"),
-            data.get("nlp_keywords"),
-            json.dumps(data.get("diagnostic_answers", [])),
-            data.get("student_solution"),
-            data.get("strengths"),
-            data.get("growth_areas"),
-            data.get("named_protocol") or data.get("recommended_strategy"),
-            data.get("action_step")
-        )
-        cursor.execute(insert_query, values)
-        db.commit()
-        print("\nGeneral study diagnostic saved to MySQL database successfully! ✅")
-        return True
-    except Error as err:
-        print(f"\n[Database Error] Could not save general diagnostic: {err}")
-        return False
-    finally:
-        if cursor:
-            cursor.close()
-        if db and db.is_connected():
-            db.close()
-
-def save_teacher_diagnostic(
-    Roll_no,
-    Student_name,
-    student_class,
-    Student_Section,
-    subject,
-    subtopic,
-    question_no,
-    question,
-    student_response,
-    detected_signals,
-    matched_words,
-    student_reasoning,
-    student_solution,
-    selected_action,
-    strengths,
-    growth_areas,
-    possible_factors,
-    advice
-):
-    ensure_database()
-    db = cursor = None
-    try:
-        db = get_connection()
-        cursor = db.cursor()
-
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS general_teacher_diagnostics (
+    if is_mysql_available():
+        try:
+            db = get_connection()
+            cursor = db.cursor()
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS study_responses (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 Roll_no VARCHAR(50) NOT NULL,
                 Student_name VARCHAR(150),
                 student_class VARCHAR(30),
-                Student_Section VARCHAR(30),
+                Student_Section VARCHAR(20),
                 subject VARCHAR(100),
-                topic VARCHAR(100) NOT NULL,
-                subtopic VARCHAR(200) NOT NULL,
-                question_no INT,
-                question TEXT,
-                student_response TEXT,
-                detected_signals TEXT,
-                matched_words TEXT,
-                student_reasoning TEXT,
-                student_solution TEXT,
-                selected_action TEXT,
-                strengths TEXT,
-                growth_areas TEXT,
-                possible_factors TEXT,
-                advice TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                INDEX idx_teacher_roll (Roll_no),
-                INDEX idx_teacher_subtopic (subtopic),
-                INDEX idx_teacher_created (created_at)
-            )
-        """)
-
-        query = """
-            INSERT INTO general_teacher_diagnostics
-            (
-                Roll_no, Student_name, student_class, Student_Section, subject,
-                topic, subtopic, question_no, question, student_response,
-                detected_signals, matched_words, student_reasoning, student_solution,
-                selected_action, strengths, growth_areas, possible_factors, advice
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
-        values = (
-            Roll_no,
-            Student_name,
-            student_class,
-            Student_Section,
-            subject,
-            "Teacher / Teaching Problems",
-            subtopic,
-            question_no,
-            question,
-            student_response,
-            detected_signals,
-            matched_words,
-            student_reasoning,
-            student_solution,
-            selected_action,
-            strengths,
-            growth_areas,
-            possible_factors,
-            advice
-        )
-        cursor.execute(query, values)
-        db.commit()
-        print("Teacher diagnostic response saved successfully! ✅")
-        return True
-    except Error as error:
-        print("MySQL Error while saving teacher diagnostic:", error)
-        return False
-    finally:
-        if cursor is not None:
+                chapter VARCHAR(200),
+                topic VARCHAR(200),
+                difficulty TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            """)
+            query = """
+            INSERT INTO study_responses 
+            (Roll_no, Student_name, student_class, Student_Section, subject, chapter, topic, difficulty)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+            """
+            cursor.execute(query, (Roll_no, Student_name, student_class, Student_Section, subject, chapter, topic, difficulty))
+            db.commit()
             cursor.close()
-        if db is not None and db.is_connected():
             db.close()
+            return True
+        except Exception:
+            pass
+
+    # SQLite fallback
+    try:
+        ensure_sqlite_tables()
+        conn = get_sqlite_conn()
+        c = conn.cursor()
+        c.execute("""
+        INSERT INTO study_responses 
+        (Roll_no, Student_name, student_class, Student_Section, subject, chapter, topic, difficulty)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+        """, (Roll_no, Student_name, student_class, Student_Section, subject, chapter, topic, difficulty))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print("SQLite save error:", e)
+        return False
+
+def check_previous_doubt(Roll_no, subject, topic):
+    ensure_database()
+    if is_mysql_available():
+        try:
+            db = get_connection()
+            cursor = db.cursor()
+            query = """
+            SELECT chapter, topic, difficulty, created_at
+            FROM study_responses
+            WHERE Roll_no = %s AND subject = %s AND topic = %s
+            ORDER BY created_at DESC;
+            """
+            cursor.execute(query, (Roll_no, subject, topic))
+            results = cursor.fetchall()
+            cursor.close()
+            db.close()
+            if results:
+                return results
+        except Exception:
+            pass
+
+    # SQLite fallback
+    try:
+        ensure_sqlite_tables()
+        conn = get_sqlite_conn()
+        c = conn.cursor()
+        c.execute("""
+        SELECT chapter, topic, difficulty, created_at
+        FROM study_responses
+        WHERE Roll_no = ? AND subject = ? AND topic = ?
+        ORDER BY created_at DESC;
+        """, (str(Roll_no), str(subject), str(topic)))
+        rows = c.fetchall()
+        results = [(r["chapter"], r["topic"], r["difficulty"], str(r["created_at"])) for r in rows]
+        conn.close()
+        return results
+    except Exception:
+        return []
+
+def check_student_history(Roll_no):
+    ensure_database()
+    if is_mysql_available():
+        try:
+            db = get_connection()
+            cursor = db.cursor()
+            query = """
+            SELECT subject, chapter, topic, difficulty, created_at
+            FROM study_responses
+            WHERE Roll_no = %s
+            ORDER BY created_at DESC;
+            """
+            cursor.execute(query, (Roll_no,))
+            results = cursor.fetchall()
+            cursor.close()
+            db.close()
+            if results:
+                return results
+        except Exception:
+            pass
+
+    # SQLite fallback
+    try:
+        ensure_sqlite_tables()
+        conn = get_sqlite_conn()
+        c = conn.cursor()
+        c.execute("""
+        SELECT subject, chapter, topic, difficulty, created_at
+        FROM study_responses
+        WHERE Roll_no = ?
+        ORDER BY created_at DESC;
+        """, (str(Roll_no),))
+        rows = c.fetchall()
+        results = [(r["subject"], r["chapter"], r["topic"], r["difficulty"], str(r["created_at"])) for r in rows]
+        conn.close()
+        return results
+    except Exception:
+        return []
+
+def get_last_general_diagnostic(roll_no):
+    ensure_database()
+    if is_mysql_available():
+        try:
+            db = get_connection()
+            cursor = db.cursor(dictionary=True)
+            query = """
+            SELECT topic, subtopic, action_step, created_at, student_solution
+            FROM general_study_diagnostics
+            WHERE roll_no = %s
+            ORDER BY id DESC LIMIT 1;
+            """
+            cursor.execute(query, (str(roll_no),))
+            res = cursor.fetchone()
+            cursor.close()
+            db.close()
+            if res:
+                return res
+        except Exception:
+            pass
+
+    # SQLite fallback
+    try:
+        ensure_sqlite_tables()
+        conn = get_sqlite_conn()
+        c = conn.cursor()
+        c.execute("""
+        SELECT topic, subtopic, action_step, created_at, student_solution
+        FROM general_study_diagnostics
+        WHERE roll_no = ?
+        ORDER BY id DESC LIMIT 1;
+        """, (str(roll_no),))
+        row = c.fetchone()
+        res = dict(row) if row else None
+        conn.close()
+        return res
+    except Exception:
+        return None
+
+def save_general_diagnostic(data: dict):
+    ensure_database()
+    if is_mysql_available():
+        try:
+            db = get_connection()
+            cursor = db.cursor()
+            # standard MySQL insert
+            query = """
+            INSERT INTO general_study_diagnostics (
+                roll_no, student_name, student_class, section,
+                topic_key, topic, subtopic_key, subtopic, problem, answers,
+                followup_notes, student_solution, solution_strengths,
+                solution_blind_spots, identified_strengths, identified_growth_areas,
+                comprehensive_advice, named_protocol, mindset_shift, action_step,
+                nlp_detected_topic, nlp_confidence, nlp_matched_keywords
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s
+            );
+            """
+            sol = data.get("solution_evaluation", {})
+            cursor.execute(query, (
+                data.get("Roll_no"), data.get("Student_name"), data.get("student_class"), data.get("Student_Section"),
+                data.get("selected_topic_key"), data.get("topic"), data.get("selected_subtopic_key"), data.get("subtopic"),
+                data.get("problem"), json.dumps(data.get("diagnostic_answers", [])), data.get("followup_notes"),
+                data.get("student_proposed_solution"), json.dumps(sol.get("strengths", [])), json.dumps(sol.get("blind_spots", [])),
+                json.dumps(data.get("identified_strengths", [])), json.dumps(data.get("identified_growth_areas", [])),
+                json.dumps(data.get("comprehensive_advice", [])), data.get("named_protocol"), data.get("mindset_shift"),
+                data.get("action_step"), data.get("nlp_detected_topic"), data.get("nlp_confidence"),
+                json.dumps(data.get("nlp_matched_keywords", []))
+            ))
+            db.commit()
+            cursor.close()
+            db.close()
+            return True
+        except Exception:
+            pass
+
+    # SQLite fallback
+    try:
+        ensure_sqlite_tables()
+        conn = get_sqlite_conn()
+        c = conn.cursor()
+        query = """
+        INSERT INTO general_study_diagnostics (
+            roll_no, student_name, student_class, section,
+            topic_key, topic, subtopic_key, subtopic, problem, answers,
+            followup_notes, student_solution, solution_strengths,
+            solution_blind_spots, identified_strengths, identified_growth_areas,
+            comprehensive_advice, named_protocol, mindset_shift, action_step,
+            nlp_detected_topic, nlp_confidence, nlp_matched_keywords
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?
+        );
+        """
+        sol = data.get("solution_evaluation", {})
+        c.execute(query, (
+            data.get("Roll_no"), data.get("Student_name"), data.get("student_class"), data.get("Student_Section"),
+            data.get("selected_topic_key"), data.get("topic"), data.get("selected_subtopic_key"), data.get("subtopic"),
+            data.get("problem"), json.dumps(data.get("diagnostic_answers", [])), data.get("followup_notes"),
+            data.get("student_proposed_solution"), json.dumps(sol.get("strengths", [])), json.dumps(sol.get("blind_spots", [])),
+            json.dumps(data.get("identified_strengths", [])), json.dumps(data.get("identified_growth_areas", [])),
+            json.dumps(data.get("comprehensive_advice", [])), data.get("named_protocol"), data.get("mindset_shift"),
+            data.get("action_step"), data.get("nlp_detected_topic"), data.get("nlp_confidence"),
+            json.dumps(data.get("nlp_matched_keywords", []))
+        ))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print("SQLite save general error:", e)
+        return False
