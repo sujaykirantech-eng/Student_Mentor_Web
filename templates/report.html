@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% block title %}Mentor Report{% endblock %}
 {% block content %}
 {% set r = result|default({}, true) %}
-<div class="report-head"><div><div class="eyebrow">10 • PERSONALIZED REPORT</div><h1>{{ r.topic|default('General Study Difficulty', true) }}</h1><p>{{ r.subtopic|default('Personalized study friction', true) }}</p></div><div class="save-pill">{{ "Saved to MySQL ✓" if saved|default(false) else "Session report" }}</div></div>
+<div class="report-head"><div><div class="eyebrow">10 • PERSONALIZED REPORT</div><h1>{{ r.topic|default('General Study Difficulty', true) }}</h1><p>{{ r.subtopic|default('Personalized study friction', true) }}</p></div><div class="save-pill">{{ "Saved to Database ✓" if saved|default(false) else "Session report" }}</div></div>
 <div class="report-grid">
 <div class="report-card blue"><span>WHAT I UNDERSTOOD</span><p>{{ r.summary_text|default('Your responses indicate a study difficulty that can be approached step by step.', true) }}</p></div>
 <div class="report-card purple"><span>MINDSET REFRAME</span><p>{{ r.mindset_shift|default('Focus on manageable improvements and consistent practice rather than trying to fix everything at once.', true) }}</p></div>

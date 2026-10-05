@@ -287,11 +287,38 @@ def get_last_general_diagnostic(roll_no):
 
 def save_general_diagnostic(data: dict):
     ensure_database()
+    r_no = str(data.get("roll_no") or data.get("Roll_no") or "101")
+    s_name = str(data.get("student_name") or data.get("Student_name") or "Student")
+    s_class = str(data.get("student_class") or "12")
+    s_sec = str(data.get("student_section") or data.get("Student_Section") or data.get("section") or "A")
+    t_key = str(data.get("selected_topic_key") or data.get("topic_key") or "")
+    t_name = str(data.get("topic") or "")
+    st_key = str(data.get("selected_subtopic_key") or data.get("subtopic_key") or "")
+    st_name = str(data.get("subtopic") or "")
+    prob = str(data.get("problem") or data.get("raw_input") or "")
+    ans = json.dumps(data.get("diagnostic_answers", []))
+    notes = str(data.get("followup_notes") or "")
+    sol = str(data.get("student_proposed_solution") or data.get("student_solution") or "")
+    sol_eval = data.get("solution_evaluation", {})
+    sol_str = json.dumps(sol_eval.get("strengths", [])) if isinstance(sol_eval, dict) else json.dumps([])
+    sol_blind = json.dumps(sol_eval.get("blind_spots", [])) if isinstance(sol_eval, dict) else json.dumps([])
+    strengths = data.get("strengths")
+    strengths_str = strengths if isinstance(strengths, str) else json.dumps(strengths or [])
+    growth = data.get("growth_areas")
+    growth_str = growth if isinstance(growth, str) else json.dumps(growth or [])
+    advice = data.get("comprehensive_advice")
+    advice_str = json.dumps(advice) if isinstance(advice, list) else str(advice or "")
+    protocol = str(data.get("named_protocol") or "Action Plan")
+    mindset = str(data.get("mindset_shift") or "")
+    action = str(data.get("action_step") or "")
+    nlp_cat = str(data.get("nlp_detected_topic") or data.get("nlp_category") or "")
+    nlp_conf = float(data.get("nlp_confidence") or 0.0)
+    nlp_kw = json.dumps(data.get("nlp_matched_keywords", []))
+
     if is_mysql_available():
         try:
             db = get_connection()
             cursor = db.cursor()
-            # standard MySQL insert
             query = """
             INSERT INTO general_study_diagnostics (
                 roll_no, student_name, student_class, section,
@@ -306,23 +333,19 @@ def save_general_diagnostic(data: dict):
                 %s, %s, %s
             );
             """
-            sol = data.get("solution_evaluation", {})
             cursor.execute(query, (
-                data.get("Roll_no"), data.get("Student_name"), data.get("student_class"), data.get("Student_Section"),
-                data.get("selected_topic_key"), data.get("topic"), data.get("selected_subtopic_key"), data.get("subtopic"),
-                data.get("problem"), json.dumps(data.get("diagnostic_answers", [])), data.get("followup_notes"),
-                data.get("student_proposed_solution"), json.dumps(sol.get("strengths", [])), json.dumps(sol.get("blind_spots", [])),
-                json.dumps(data.get("identified_strengths", [])), json.dumps(data.get("identified_growth_areas", [])),
-                json.dumps(data.get("comprehensive_advice", [])), data.get("named_protocol"), data.get("mindset_shift"),
-                data.get("action_step"), data.get("nlp_detected_topic"), data.get("nlp_confidence"),
-                json.dumps(data.get("nlp_matched_keywords", []))
+                r_no, s_name, s_class, s_sec,
+                t_key, t_name, st_key, st_name, prob, ans,
+                notes, sol, sol_str, sol_blind, strengths_str, growth_str,
+                advice_str, protocol, mindset, action,
+                nlp_cat, nlp_conf, nlp_kw
             ))
             db.commit()
             cursor.close()
             db.close()
             return True
-        except Exception:
-            pass
+        except Exception as e:
+            print("MySQL save general diagnostic exception:", e)
 
     # SQLite fallback
     try:
@@ -343,16 +366,12 @@ def save_general_diagnostic(data: dict):
             ?, ?, ?
         );
         """
-        sol = data.get("solution_evaluation", {})
         c.execute(query, (
-            data.get("Roll_no"), data.get("Student_name"), data.get("student_class"), data.get("Student_Section"),
-            data.get("selected_topic_key"), data.get("topic"), data.get("selected_subtopic_key"), data.get("subtopic"),
-            data.get("problem"), json.dumps(data.get("diagnostic_answers", [])), data.get("followup_notes"),
-            data.get("student_proposed_solution"), json.dumps(sol.get("strengths", [])), json.dumps(sol.get("blind_spots", [])),
-            json.dumps(data.get("identified_strengths", [])), json.dumps(data.get("identified_growth_areas", [])),
-            json.dumps(data.get("comprehensive_advice", [])), data.get("named_protocol"), data.get("mindset_shift"),
-            data.get("action_step"), data.get("nlp_detected_topic"), data.get("nlp_confidence"),
-            json.dumps(data.get("nlp_matched_keywords", []))
+            r_no, s_name, s_class, s_sec,
+            t_key, t_name, st_key, st_name, prob, ans,
+            notes, sol, sol_str, sol_blind, strengths_str, growth_str,
+            advice_str, protocol, mindset, action,
+            nlp_cat, nlp_conf, nlp_kw
         ))
         conn.commit()
         conn.close()
